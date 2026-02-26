@@ -49,7 +49,7 @@ int main ()
 	float yPosInitial = -160;
 
 	float yPos[BUFFER_SIZE] = {yPosInitial};
-	int column[BUFFER_SIZE] = {0,1,2,3,1,4,2,0,1,3};
+	int column[BUFFER_SIZE] = {0,1,2,3,1,3,2,0,1,3};
 	int active[BUFFER_SIZE] = {0};
 	float spawnTime[BUFFER_SIZE] = {};
 	float hitTime[BUFFER_SIZE] = {
@@ -83,7 +83,6 @@ int main ()
 	for (int i = 0; i < BUFFER_SIZE; i++)
 	{
 		spawnTime[i] = hitTime[i] * 1000 - preTime;
-		
 	}
 	
 	
@@ -92,10 +91,7 @@ int main ()
 	while (!WindowShouldClose())
 	{
 		timer = (float) GetTime() * 1000;
-
-	
 		BeginDrawing();
-
 		ClearBackground(PURPLE);
 
 		if (render < BUFFER_SIZE)
@@ -105,20 +101,15 @@ int main ()
 				yPos[render] = -160;
 				render++;
 			}
+		}
 
-			if(yPos[done] == 1608) {
-				done++;
-			}
-
-			for (int i = done; i < render; i++)
-			{
-				DrawRectangleRec((Rectangle){4 + (float)column[i] * tilesWidthFloat, yPos[i], tilesWidthFloat, 160}, multipleColor[column[i]]);
-				yPos[i] += speed * GetFrameTime() * 1000;
-			}
+		for (int i = done; i < render; i++)
+		{
+			printf("%i\n",render);
+			DrawRectangleRec((Rectangle){4 + (float)column[i] * tilesWidthFloat, yPos[i], tilesWidthFloat, 160}, multipleColor[column[i]]);
+			yPos[i] += speed * GetFrameTime() * 1000;
 		}
 		
-		
-
 		for (int i = 0; i < 4; i++)
 		{
 			DrawRectangleRec(hitBox[i],transparent);
@@ -128,30 +119,47 @@ int main ()
 
 		}
 
+		for (size_t i = 0; i < 4; i++)
+		{	
+			if (peekCircularBufferFloat(&lanes[i]) == 0) continue;
+			
+			float checktiming = peekCircularBufferFloat(&lanes[i]) * 1000.0f;
+			float diff = timer - checktiming;
+			if (diff > 100.0f) {
+				printf("Miss!\n");
+				popfromCircularBufferFloat(&lanes[i]);
+				done++;
+			}
+		}
+		
+
 		if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
 		Vector2 mousePos = GetMousePosition();
-		
 			for (int i = 0; i < 4; i++)
 			{
+				float checktiming = peekCircularBufferFloat(&lanes[i]) * 1000.0f;
+				float diff = fabsf(timer - checktiming);
 				if (CheckCollisionPointRec(mousePos, hitButtons[i])) {
-					float checktiming = peekCircularBufferFloat(&lanes[i]) * 1000.0f;
-					float diff = fabsf(timer - checktiming); // Correct float absolute value
 
 					printf("Target: %.2fms | Current: %.2fms | Diff: %.2fms\n", checktiming, timer, diff);
 
-					if (diff < 50.0f) {
+					if (diff < 70.0f) {
 						printf("Perfect!\n");
 						popfromCircularBufferFloat(&lanes[i]);
+						done++;
+					} else if (diff < 80.0f) {
+						printf("Great!\n");
+						popfromCircularBufferFloat(&lanes[i]);
+						done++;
+					} else if (diff < 90.0f) {
+						printf("Good!\n");
+						popfromCircularBufferFloat(&lanes[i]);
+						done++;
 					}
 				}
 			}
-
 		}
-
-		
 	
-
-				
 		EndDrawing();
 	}
 

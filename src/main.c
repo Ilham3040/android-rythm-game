@@ -52,7 +52,10 @@ int main ()
 	int column[BUFFER_SIZE] = {0,1,2,3,1,4,2,0,1,3};
 	int active[BUFFER_SIZE] = {0};
 	float spawnTime[BUFFER_SIZE] = {};
-	float hitTime[BUFFER_SIZE] = {15.2, 16.5, 18.1, 20.3, 21.7, 23.4, 25.0, 26.8, 28.2, 29.9};
+	float hitTime[BUFFER_SIZE] = {
+		3.0f, 4.3f, 5.9f, 8.1f, 9.5f,
+		11.2f, 12.8f, 14.6f, 16.0f, 17.7f
+	};
 
 	CircularBufferFloat lanes[4];
 
@@ -68,10 +71,9 @@ int main ()
 	
 
 
-	float ar = 2;
-	float preempt = 1.2;
-	float approachTiming = (preempt - (0.15 * (ar - 5)));
-	float speed;
+	float scrollSpeed = 5;
+	float preTime = 1200 - (scrollSpeed - 5) * 140;
+	float speed = (1444 - yPosInitial) / preTime;
 
 
 	int render = 0;
@@ -80,7 +82,8 @@ int main ()
 
 	for (int i = 0; i < BUFFER_SIZE; i++)
 	{
-		spawnTime[i] = hitTime[i] - approachTiming;
+		spawnTime[i] = hitTime[i] * 1000 - preTime;
+		
 	}
 	
 	
@@ -88,32 +91,29 @@ int main ()
 
 	while (!WindowShouldClose())
 	{
-		
 		timer = (float) GetTime() * 1000;
-		speed = (1444 - yPosInitial) / approachTiming;
-		
 
+	
 		BeginDrawing();
-
 
 		ClearBackground(PURPLE);
 
 		if (render < BUFFER_SIZE)
 		{
-			if(!active[render] && GetTime() >= spawnTime[render]){
+			if(!active[render] && timer >= spawnTime[render]){
 				active[render] = 1;
 				yPos[render] = -160;
 				render++;
 			}
 
-			if(yPos[done] == 1920) {
+			if(yPos[done] == 1608) {
 				done++;
 			}
 
 			for (int i = done; i < render; i++)
 			{
 				DrawRectangleRec((Rectangle){4 + (float)column[i] * tilesWidthFloat, yPos[i], tilesWidthFloat, 160}, multipleColor[column[i]]);
-				yPos[i] += speed * GetFrameTime();
+				yPos[i] += speed * GetFrameTime() * 1000;
 			}
 		}
 		
@@ -139,7 +139,7 @@ int main ()
 
 					printf("Target: %.2fms | Current: %.2fms | Diff: %.2fms\n", checktiming, timer, diff);
 
-					if (diff < 200.0f) {
+					if (diff < 50.0f) {
 						printf("Perfect!\n");
 						popfromCircularBufferFloat(&lanes[i]);
 					}

@@ -84,6 +84,8 @@ int main ()
 	Color hitIndicator = transparent;
 	int hitCombo = 0;
 	int score = 0;
+	int health = 100;
+
 
 
 	for (int i = 0; i < BUFFER_SIZE; i++)
@@ -96,6 +98,7 @@ int main ()
 
 	while (!WindowShouldClose())
 	{
+		int healthBar = 400 / 100 * health;
 		timer = (float) GetTime() * 1000;
 		BeginDrawing();
 		ClearBackground(PURPLE);
@@ -138,6 +141,7 @@ int main ()
 				hitCombo = 0;
 				popfromCircularBufferFloat(&lanes[i]);
 				done++;
+				if (health > 0) health-=10;
 			}
 		}
 		
@@ -160,6 +164,7 @@ int main ()
 						hitCombo++;
 						score += hitCombo * 300;
 						popfromCircularBufferFloat(&lanes[i]);
+						if (health < 100) health+=10;
 						done++;
 					} else if (diff < 120.0f) {
 						printf("Great!\n");
@@ -169,6 +174,7 @@ int main ()
 						hitCombo++;
 						score += hitCombo * 200;
 						popfromCircularBufferFloat(&lanes[i]);
+						if (health < 100) health+=5;
 						done++;
 					} else if (diff < 180.0f) {
 						printf("Good!\n");
@@ -178,6 +184,7 @@ int main ()
 						hitCombo++;
 						score += hitCombo * 100;
 						popfromCircularBufferFloat(&lanes[i]);
+						if (health < 100) health+=5;
 						done++;
 					}
 				}
@@ -193,6 +200,10 @@ int main ()
 
 		DrawText(TextFormat("%i", score), 100, 1300, 24, WHITE);
 		DrawText(TextFormat("%i", hitCombo), 980 - MeasureText(TextFormat("%i", hitCombo),24), 1300, 24, WHITE);
+		
+		DrawRectangle(340,1200,healthBar,50,WHITE);
+		Rectangle healthBarOutline = {340-4,1200-4,400+8,50+8};
+		DrawRectangleLinesEx(healthBarOutline,2.0f,WHITE);
 	
 		EndDrawing();
 	}

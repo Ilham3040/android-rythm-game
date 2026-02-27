@@ -79,6 +79,12 @@ int main ()
 	int render = 0;
 	int done = 0;
 
+	float hitTimer = 0.0f;
+	const char* hitText = "";
+	Color hitIndicator = transparent;
+	int hitCombo = 0;
+	int score = 0;
+
 
 	for (int i = 0; i < BUFFER_SIZE; i++)
 	{
@@ -105,7 +111,6 @@ int main ()
 
 		for (int i = done; i < render; i++)
 		{
-			printf("%i\n",render);
 			DrawRectangleRec((Rectangle){4 + (float)column[i] * tilesWidthFloat, yPos[i], tilesWidthFloat, 160}, multipleColor[column[i]]);
 			yPos[i] += speed * GetFrameTime() * 1000;
 		}
@@ -125,8 +130,12 @@ int main ()
 			
 			float checktiming = peekCircularBufferFloat(&lanes[i]) * 1000.0f;
 			float diff = timer - checktiming;
-			if (diff > 100.0f) {
+			if (diff > 180.0f) {
 				printf("Miss!\n");
+				hitText = "Miss!";
+    			hitTimer = 1.0f;
+				hitIndicator = RED;
+				hitCombo = 0;
 				popfromCircularBufferFloat(&lanes[i]);
 				done++;
 			}
@@ -141,24 +150,49 @@ int main ()
 				float diff = fabsf(timer - checktiming);
 				if (CheckCollisionPointRec(mousePos, hitButtons[i])) {
 
-					printf("Target: %.2fms | Current: %.2fms | Diff: %.2fms\n", checktiming, timer, diff);
+					// printf("Target: %.2fms | Current: %.2fms | Diff: %.2fms\n", checktiming, timer, diff);
 
-					if (diff < 70.0f) {
+					if (diff < 60.0f) {
 						printf("Perfect!\n");
+						hitText = "Perfect!";
+						hitTimer = 1.0f;
+						hitIndicator = GOLD;
+						hitCombo++;
+						score += hitCombo * 300;
 						popfromCircularBufferFloat(&lanes[i]);
 						done++;
-					} else if (diff < 80.0f) {
+					} else if (diff < 120.0f) {
 						printf("Great!\n");
+						hitText = "Great!";
+						hitTimer = 1.0f;
+						hitIndicator = BLUE;
+						hitCombo++;
+						score += hitCombo * 200;
 						popfromCircularBufferFloat(&lanes[i]);
 						done++;
-					} else if (diff < 90.0f) {
+					} else if (diff < 180.0f) {
 						printf("Good!\n");
+						hitText = "Good!";
+						hitTimer = 1.0f;
+						hitIndicator = GREEN;
+						hitCombo++;
+						score += hitCombo * 100;
 						popfromCircularBufferFloat(&lanes[i]);
 						done++;
 					}
 				}
 			}
 		}
+
+		if (hitTimer > 0) {
+			int textWidth = MeasureText(hitText, 32);
+			int centeredX = 540 - (textWidth / 2); 
+			DrawText(hitText, centeredX, 1300, 32, hitIndicator);
+			hitTimer -= GetFrameTime();
+		}
+
+		DrawText(TextFormat("%i", score), 100, 1300, 24, WHITE);
+		DrawText(TextFormat("%i", hitCombo), 980 - MeasureText(TextFormat("%i", hitCombo),24), 1300, 24, WHITE);
 	
 		EndDrawing();
 	}
